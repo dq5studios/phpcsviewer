@@ -1,14 +1,14 @@
 <?php
-
-// get file list
-// crawl file list
-// include file
-// get_declared_classes
-// ReflectionClass
-// getProperties(ReflectionProperty::IS_PUBLIC)
-// build property list
-// ref = namespace + class - PHP_CodeSniffer\Standards
-//
+/**
+ * Get file list
+ * crawl file list
+ * include file
+ * get_declared_classes
+ * ReflectionClass
+ * getProperties(ReflectionProperty::IS_PUBLIC)
+ * build property list
+ * ref = namespace + class - PHP_CodeSniffer\Standards
+ */
 
 spl_autoload_register(
     function ($class) {
@@ -75,15 +75,39 @@ foreach ($sniff_list as $filename) {
 
     // Look for sub sniffs
     preg_match_all("/add(Fixable)?(Error|Warning|Message)(OnLine)?\(([^,]*),([^,]*), *([^,)]*)/", $doc, $sub_sniff);
+    $search_vars = [];
     $sub_sniff_list = [];
     if (!empty($sub_sniff[6])) {
         foreach ($sub_sniff[6] as $sniff) {
             if ($sniff == "'Found'") {
                 continue;
             }
-            $sub_sniff_list[] = trim($sniff, "' \n");
+            $sub_sniff = trim($sniff, "' \n");
+            if ($sub_sniff[0] === '$') {
+                $search_vars[] = substr($sub_sniff, 1);
+                continue;
+            }
+            $sub_sniff_list[] = $sub_sniff;
         }
     }
+    if (!empty($search_vars)) {
+        foreach ($search_vars as $search) {
+            preg_match_all("/{$search} +.?= +([^;]*);/", $doc, $sub_sniff);
+            if (!empty($sub_sniff[1])) {
+                foreach ($sub_sniff[1] as $sniff) {
+                    if ($sniff == "'Found'") {
+                        continue;
+                    }
+                    $sub_sniff = trim($sniff, "' \n");
+                    $sub_sniff_list[] = $sub_sniff;
+                }
+            } else {
+                $sub_sniff_list[] = '$' . $search;
+            }
+        }
+    }
+    sort($sub_sniff_list);
+    $sub_sniff_list = array_unique($sub_sniff_list);
 
     $parts = explode("\\", $sniff_class);
     $parts[5] = str_replace("Sniff", "", $parts[5]);
@@ -96,7 +120,7 @@ foreach ($sniff_list as $filename) {
     ];
 }
 
-// var_dump($sniffs[14]);
+// var_dump($sniffs[16]);
 // exit;
 
 foreach ($sniffs as $j => $sniff) {
