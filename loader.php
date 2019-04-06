@@ -73,17 +73,31 @@ foreach ($sniff_list as $filename) {
         $desc = trim(str_replace("\n\n", "\n", $desc));
     }
 
+    // Look for sub sniffs
+    preg_match_all("/add(Fixable)?(Error|Warning|Message)(OnLine)?\(([^,]*),([^,]*), *([^,)]*)/", $doc, $sub_sniff);
+    $sub_sniff_list = [];
+    if (!empty($sub_sniff[6])) {
+        foreach ($sub_sniff[6] as $sniff) {
+            if ($sniff == "'Found'") {
+                continue;
+            }
+            $sub_sniff_list[] = trim($sniff, "' \n");
+        }
+    }
+
     $parts = explode("\\", $sniff_class);
     $parts[5] = str_replace("Sniff", "", $parts[5]);
     $ref = "{$parts[2]}.{$parts[4]}.{$parts[5]}";
     $sniffs[] = [
         "name" => $ref,
         "desc" => $desc,
-        "opts" => $props
+        "opts" => $props,
+        "sniffs" => $sub_sniff_list
     ];
 }
 
 // var_dump($sniffs[14]);
+// exit;
 
 foreach ($sniffs as $j => $sniff) {
     echo "## {$sniff["name"]}\n";
@@ -98,6 +112,12 @@ foreach ($sniffs as $j => $sniff) {
             if ($i < ($c - 1)) {
                 echo ">\n";
             }
+        }
+    }
+    if (!empty($sniff["sniffs"])) {
+        echo "### Additional Sniffs\n";
+        foreach ($sniff["sniffs"] as $sub) {
+            echo "- {$sub}\n";
         }
     }
     echo "\n";
