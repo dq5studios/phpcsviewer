@@ -1,5 +1,2 @@
-Files/
-Sniffs/
-Standards/
-Tokenizers/
-Util/
+*.md
+*.html
