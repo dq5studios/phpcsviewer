@@ -115,13 +115,14 @@ foreach ($sniff_list as $filename) {
     $sniffs[] = [
         "name" => $ref,
         "desc" => $desc,
+        "code" => "",
         "opts" => $props,
         "sniffs" => $sub_sniff_list
     ];
 }
 
-// var_dump($sniffs[0]);
-// exit;
+var_dump($sniffs[1]);
+exit;
 
 // foreach ($sniffs as $sniff) {
 //     echo "## {$sniff["name"]}\n";
@@ -151,28 +152,55 @@ echo <<<HTML
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+            integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
         <link rel="stylesheet" href="phpcs.css">
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> -->
+        <script src="phpcs.js"></script>
         <title>Smashing</title>
     </head>
     <body>
         <div class="container">
-            <form>\n
+            <form>
+                <div class="form-group row">
+                    <label for="search_filter" class="col-sm-1 col-form-label">Filter</label>
+                    <div class="col-sm-3">
+                        <input type="email" class="form-control" id="search_filter">
+                    </div>
+                    <label for="search_filter" class="col-sm-1 col-form-label">Version</label>
+                    <div class="col-sm-2">
+                        <select class="form-control">
+                            <option value="3.4.0">V3.4.0</option>
+                        </select>
+                    </div>
+                </div>\n
 HTML;
 foreach ($sniffs as $sniff) {
-    $sniff["desc"] = str_replace(["<code>", "</code>"], ["<pre><code>", "</code></pre>"], $sniff["desc"]);
+    // $sniff["desc"] = str_replace(["<code>", "</code>"], ["<pre><code class=\"php\">&lt;?php", "?&gt;</code></pre>"], $sniff["desc"]);
+    preg_match_all("/<code>((.|\n)*)<\/code>/m", $sniff["desc"], $desc);
+    if (count($desc) > 1 && !empty($desc[1])) {
+        $desc = highlight_string("<?php{$desc[1][0]}?>", true);
+        $sniff["desc"] = preg_replace("/<code>((.|\n)*)<\/code>/m", "", $sniff["desc"]);
+        $sniff["code"] = "<pre>{$desc}</pre>";
+    }
     echo <<<HTML
     <div class="form-group">
-        <div class="col-sm-6">
+        <div class="col-8">
             <h4>
                 <div class="custom-control custom-switch">
-                    <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}">
+                    <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}" name="{$sniff["name"]}">
                     <label class="custom-control-label" for="{$sniff["name"]}">{$sniff["name"]}</label>
+                    <i class="fas fa-info-circle text-muted float-right"></i>
                 </div>
             </h4>
             <p>{$sniff["desc"]}</p>
-            <input class="hider" type="radio" name="{$sniff["name"]}" checked hidden>
-            <dl>\n
+            {$sniff["code"]}
+            <dl hidden>\n
 HTML;
     if (!empty($sniff["sniffs"])) {
         echo <<<HTML
@@ -189,6 +217,7 @@ HTML;
 HTML;
         }
         echo <<<HTML
+                    </div>
                 </dd>\n
 HTML;
     }
@@ -204,7 +233,7 @@ HTML;
                     </dt>
                     <dd class="form-group row">
                         <label class="col-sm-3 col-form-label">{$opt["name"]}</label>
-                        <div class="col-sm-9">
+                        <div class="col-sm-6">
                             <input type="{$type}" class="form-control">
                         </div>
                     </dd>\n
