@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Get file list
  * crawl file list
@@ -79,11 +80,8 @@ foreach ($sniff_list as $filename) {
     $sub_sniff_list = [];
     if (!empty($sub_sniff[6])) {
         foreach ($sub_sniff[6] as $sniff) {
-            if ($sniff == "'Found'") {
-                continue;
-            }
             $sub_sniff = trim($sniff, "' \n");
-            if ($sub_sniff[0] === '$') {
+            if ($sub_sniff[0] === "\$") {
                 $search_vars[] = substr($sub_sniff, 1);
                 continue;
             }
@@ -95,19 +93,30 @@ foreach ($sniff_list as $filename) {
             preg_match_all("/{$search} +.?= +([^;]*);/", $doc, $sub_sniff);
             if (!empty($sub_sniff[1])) {
                 foreach ($sub_sniff[1] as $sniff) {
-                    if ($sniff == "'Found'") {
-                        continue;
-                    }
                     $sub_sniff = trim($sniff, "' \n");
                     $sub_sniff_list[] = $sub_sniff;
                 }
             } else {
-                $sub_sniff_list[] = '$' . $search;
+                $sub_sniff_list[] = "\${$search}";
             }
         }
     }
     sort($sub_sniff_list);
     $sub_sniff_list = array_unique($sub_sniff_list);
+
+    // Parse xml documentation
+    $example = [];
+    $xml_name = str_replace(["/Sniffs/", "Sniff.php"], ["/Docs/", "Standard.xml"], $filename);
+    if (in_array($xml_name, $doc_list) && file_exists($xml_name)) {
+        $example = [];
+        $xml = simplexml_load_file($xml_name, "SimpleXMLElement", LIBXML_NOCDATA);
+        if ($xml->code_comparison) {
+            foreach ($xml->code_comparison->code as $value) {
+                $key = (string) $value->attributes()[0];
+                $example[$key] = trim((string) $value);
+            }
+        }
+    }
 
     $parts = explode("\\", $sniff_class);
     $parts[5] = str_replace("Sniff", "", $parts[5]);
@@ -115,14 +124,15 @@ foreach ($sniff_list as $filename) {
     $sniffs[] = [
         "name" => $ref,
         "desc" => $desc,
-        "code" => "",
+        "code" => $example,
         "opts" => $props,
         "sniffs" => $sub_sniff_list
     ];
 }
 
-var_dump($sniffs[1]);
-exit;
+// var_dump($sniffs[1]);
+// exit;
+
 
 // foreach ($sniffs as $sniff) {
 //     echo "## {$sniff["name"]}\n";
@@ -166,47 +176,60 @@ echo <<<HTML
     </head>
     <body>
         <div class="container">
+            <h1>PHP Code Sniffer Configuration</h1>
             <form>
-                <div class="form-group row">
-                    <label for="search_filter" class="col-sm-1 col-form-label">Filter</label>
-                    <div class="col-sm-3">
-                        <input type="email" class="form-control" id="search_filter">
+                <div class="form-group row sticky-top bg-white">
+                    <label for="search_filter" class="col-1 col-form-label">Filter</label>
+                    <div class="col-3">
+                        <input type="text" class="form-control" id="search_filter">
                     </div>
-                    <label for="search_filter" class="col-sm-1 col-form-label">Version</label>
-                    <div class="col-sm-2">
+                    <label for="search_filter" class="col-1 col-form-label">Version</label>
+                    <div class="col-2">
                         <select class="form-control">
                             <option value="3.4.0">V3.4.0</option>
                         </select>
                     </div>
+                    <div class="col-3 text-right">
+                        <button type="button" class="btn btn-primary">Import
+                        <i class="fas fa-file-upload"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary">Export
+                        <i class="fas fa-file-download"></i>
+                        </button>
+                    </div>
                 </div>\n
 HTML;
 foreach ($sniffs as $sniff) {
-    // $sniff["desc"] = str_replace(["<code>", "</code>"], ["<pre><code class=\"php\">&lt;?php", "?&gt;</code></pre>"], $sniff["desc"]);
+    $code = "";
     preg_match_all("/<code>((.|\n)*)<\/code>/m", $sniff["desc"], $desc);
     if (count($desc) > 1 && !empty($desc[1])) {
         $desc = highlight_string("<?php{$desc[1][0]}?>", true);
         $sniff["desc"] = preg_replace("/<code>((.|\n)*)<\/code>/m", "", $sniff["desc"]);
-        $sniff["code"] = "<pre>{$desc}</pre>";
+        // $code = "<pre>{$desc}</pre>";
     }
     echo <<<HTML
-    <div class="form-group">
+    <div class="form-group row" data-sniff="{$sniff["name"]}">
         <div class="col-8">
             <h4>
                 <div class="custom-control custom-switch">
                     <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}" name="{$sniff["name"]}">
-                    <label class="custom-control-label" for="{$sniff["name"]}">{$sniff["name"]}</label>
-                    <i class="fas fa-info-circle text-muted float-right"></i>
+                    <label class="custom-control-label" for="{$sniff["name"]}">{$sniff["name"]}</label>\n
+HTML;
+    if (!empty($sniff["code"])) {
+        echo "<i class=\"example_toggle fas fa-info-circle text-muted float-right\"></i>";
+    }
+    echo <<<HTML
                 </div>
             </h4>
             <p>{$sniff["desc"]}</p>
-            {$sniff["code"]}
+            {$code}
             <dl hidden>\n
 HTML;
     if (!empty($sniff["sniffs"])) {
         echo <<<HTML
-                <dd class="form-group row">
-                    <div class="col-sm-2">Rules</div>
-                    <div class="col-sm-10">\n
+                <dd class="form-group row rules">
+                    <div class="col-2">Rules</div>
+                    <div class="col-10">\n
 HTML;
         foreach ($sniff["sniffs"] as $sub) {
             echo <<<HTML
@@ -227,18 +250,57 @@ HTML;
             if (in_array($opt["type"], ["int", "integer"])) {
                 $type = "number";
             }
+            $input = <<<HTML
+                <label class="col-3 col-form-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
+                <div class="col-6">
+                    <input type="{$type}" class="form-control" id="{$sniff["name"]}[{$opt["name"]}]">
+                </div>
+HTML;
+            if (in_array($opt["type"], ["bool", "boolean"])) {
+                $input = <<<HTML
+                <div class="col-6">
+                    <div class="custom-control custom-switch">
+                        <input class="custom-control-input" id="{$sniff["name"]}[{$opt["name"]}]" type="checkbox" value="1">
+                        <label class="custom-control-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
+                    </div>
+                </div>
+HTML;
+            }
             echo <<<HTML
                     <dt class="form-group row">
-                        <span class="col-sm">{$opt["desc"]}</span>
+                        <span class="col">{$opt["desc"]}</span>
                     </dt>
                     <dd class="form-group row">
-                        <label class="col-sm-3 col-form-label">{$opt["name"]}</label>
-                        <div class="col-sm-6">
-                            <input type="{$type}" class="form-control">
-                        </div>
+                        {$input}
                     </dd>\n
 HTML;
         }
+    }
+    echo <<<HTML
+            </dl>
+        </div>
+        <div class="col">
+            <dl class="examples" hidden>\n
+HTML;
+    foreach ($sniff["code"] as $label => $example) {
+        $example = str_replace(["&lt;em&gt;", "&lt;/em&gt;"], ["<kbd>", "</kbd>"], htmlentities($example));
+        // $example = str_replace(["<em>", "</em>"], ["<>", "</>"], $example);
+        // if (strpos($example, "<?php") === false) {
+        //     $example = "<?php\n{$example}";
+        // }
+        // if (strpos($example, "? >") === false) {
+        //     $example = "{$example}\n? >";
+        // }
+        // $example = highlight_string($example, true);
+        // $example = str_replace(["&lt;&gt;</span>", "&lt;/&gt;"], ["</span><kbd>", "</kbd>"], $example);
+        echo <<<HTML
+            <dt class="form-group row">
+                <span class="col">{$label}</span>
+            </dt>
+            <dd class="form-group row">
+                <pre class="col"><code>{$example}</code></pre>
+            </dd>\n
+HTML;
     }
     echo <<<HTML
             </dl>
