@@ -11,6 +11,7 @@ class phpcsConfig {
             check.addEventListener("click", page.toggleExample);
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
+        document.getElementById("enabled_only").addEventListener("change", page.toggleEnabled)
     }
 
     public toggleSniff(event: Event): void {
@@ -61,6 +62,29 @@ class phpcsConfig {
         hide_matches.forEach((element: HTMLElement) => {
             element.setAttribute("hidden", "hidden");
         });
+    }
+
+    public toggleEnabled(event: Event): void {
+        let active = <HTMLInputElement>document.getElementById("enabled_only");
+        if (active.checked) {
+            let show_matches = document.querySelectorAll("h4 [type=checkbox]:checked");
+            if (show_matches.length === 0) {
+                return;
+            }
+            let hide_matches = document.querySelectorAll("[data-sniff]");
+            hide_matches.forEach((element: HTMLElement) => {
+                element.setAttribute("hidden", "hidden");
+            });
+            show_matches.forEach((element: HTMLElement) => {
+                let sniff = <HTMLElement>element.parentNode.parentNode.parentNode.parentNode;
+                sniff.removeAttribute("hidden");
+            });
+        } else {
+            let hide_matches = document.querySelectorAll("[data-sniff]");
+            hide_matches.forEach((element: HTMLElement) => {
+                element.removeAttribute("hidden");
+            });
+        }
     }
 }
 

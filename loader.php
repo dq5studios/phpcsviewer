@@ -185,9 +185,15 @@ echo <<<HTML
                     </div>
                     <label for="search_filter" class="col-1 col-form-label">Version</label>
                     <div class="col-2">
-                        <select class="form-control">
+                        <select class="custom-select">
                             <option value="3.4.0">V3.4.0</option>
                         </select>
+                    </div>
+                    <div class="col-2">
+                        <div class="custom-control custom-switch custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="enabled_only">
+                            <label class="custom-control-label" for="enabled_only">Only enabled</label>
+                        </div>
                     </div>
                     <div class="col-3 text-right">
                         <button type="button" class="btn btn-primary">Import
