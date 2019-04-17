@@ -205,10 +205,10 @@ echo <<<HTML
                         </div>
                     </div>
                     <div class="col-3 text-right">
-                        <button type="button" class="btn btn-primary">Import
+                        <button type="button" class="btn btn-primary" id="import">Import
                         <i class="fas fa-file-upload"></i>
                         </button>
-                        <button type="button" class="btn btn-primary">Export
+                        <button type="button" class="btn btn-primary" id="export">Export
                         <i class="fas fa-file-download"></i>
                         </button>
                     </div>
@@ -304,14 +304,14 @@ HTML;
             $input = <<<HTML
                 <label class="col-3 col-form-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
                 <div class="col-6">
-                    <input type="{$type}" class="form-control" id="{$sniff["name"]}[{$opt["name"]}]">
+                    <input type="{$type}" class="form-control property" id="{$sniff["name"]}[{$opt["name"]}]">
                 </div>
 HTML;
             if (in_array($opt["type"], ["bool", "boolean"])) {
                 $input = <<<HTML
                 <div class="col-6">
                     <div class="custom-control custom-switch">
-                        <input class="custom-control-input" id="{$sniff["name"]}[{$opt["name"]}]" type="checkbox" value="1">
+                        <input class="custom-control-input property" id="{$sniff["name"]}[{$opt["name"]}]" type="checkbox" value="1">
                         <label class="custom-control-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
                     </div>
                 </div>

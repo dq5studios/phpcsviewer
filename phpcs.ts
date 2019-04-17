@@ -1,8 +1,4 @@
 class phpcsConfig {
-    constructor() {
-        //
-    }
-
     public pageReady(): void {
         document.querySelectorAll("h4 [type=checkbox]").forEach((check: HTMLInputElement) => {
             check.addEventListener("change", page.toggleSniff);
@@ -17,6 +13,8 @@ class phpcsConfig {
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
         document.getElementById("enabled_only").addEventListener("change", page.toggleEnabled)
+        document.getElementById("import").addEventListener("click", page.importXml);
+        document.getElementById("export").addEventListener("click", page.exportXml);
     }
 
     public toggleSniff(event: Event): void {
@@ -76,6 +74,45 @@ class phpcsConfig {
                 element.removeAttribute("hidden");
             });
         }
+    }
+
+    public importXml() {
+
+    }
+
+    public exportXml() {
+        let xml_doc = document.implementation.createDocument(null, "ruleset", null);
+
+        document.querySelectorAll("h4 [type=checkbox]:checked").forEach((check: HTMLInputElement) => {
+            let rule = xml_doc.createElement("rule");
+            let ruleset = xml_doc.getElementsByTagName("ruleset");
+            rule.setAttribute("ref", check.getAttribute("name"));
+            let sniff = check.parentNode.parentNode.parentNode;
+            sniff.querySelectorAll(".rules [type=radio]:checked").forEach((sub_rule: HTMLInputElement) => {
+                switch (sub_rule.value) {
+                    case "off":
+                        let exclude = xml_doc.createElement("exclude");
+                        exclude.setAttribute("name", sub_rule.getAttribute("name"));
+                        rule.appendChild(exclude);
+                        break;
+                    case "warning":
+                        let rule_warn = xml_doc.createElement("rule");
+                        rule_warn.setAttribute("ref", sub_rule.getAttribute("name"));
+                        let type = xml_doc.createElement("type");
+                        type.textContent = "warning";
+                        rule_warn.appendChild(type);
+                        ruleset[0].appendChild(rule_warn);
+                        break;
+                }
+            });
+            sniff.querySelectorAll(".property");
+            ruleset[0].appendChild(rule);
+        });
+
+        let serializer = new XMLSerializer();
+        let xml_string = "<?xml version=\"1.0\"?>\n" + serializer.serializeToString(xml_doc);
+
+        console.log(xml_string);
     }
 }
 
