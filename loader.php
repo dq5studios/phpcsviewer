@@ -163,14 +163,23 @@ echo <<<HTML
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+        </script>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
             integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+        </script>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
             integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+        <!-- <link rel="stylesheet"
+            href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script> -->
         <link rel="stylesheet" href="phpcs.css">
-        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script> -->
         <script src="phpcs.js"></script>
         <title>Smashing</title>
     </head>
@@ -222,7 +231,26 @@ foreach ($sniffs as $sniff) {
                     <label class="custom-control-label" for="{$sniff["name"]}">{$sniff["name"]}</label>\n
 HTML;
     if (!empty($sniff["code"])) {
-        echo "<i class=\"example_toggle fas fa-info-circle text-muted float-right\"></i>";
+        echo <<<HTML
+                    <i class="example_toggle fas fa-info-circle text-muted float-right"></i>
+                    <div hidden>
+                        <dl class="examples">
+HTML;
+        foreach ($sniff["code"] as $label => $example) {
+            $example = str_replace(["&lt;em&gt;", "&lt;/em&gt;"], ["<kbd>", "</kbd>"], htmlentities($example));
+            echo <<<HTML
+            <dt class="form-group row">
+                <span class="col">{$label}</span>
+            </dt>
+            <dd class="form-group row">
+                <pre class="col"><code>{$example}</code></pre>
+            </dd>\n
+HTML;
+        }
+        echo <<<HTML
+                        </dl>
+                    </div>
+HTML;
     }
     echo <<<HTML
                 </div>
@@ -288,8 +316,8 @@ HTML;
         <div class="col">
             <dl class="examples" hidden>\n
 HTML;
-    foreach ($sniff["code"] as $label => $example) {
-        $example = str_replace(["&lt;em&gt;", "&lt;/em&gt;"], ["<kbd>", "</kbd>"], htmlentities($example));
+    // foreach ($sniff["code"] as $label => $example) {
+    //     $example = str_replace(["&lt;em&gt;", "&lt;/em&gt;"], ["<kbd>", "</kbd>"], htmlentities($example));
         // $example = str_replace(["<em>", "</em>"], ["<>", "</>"], $example);
         // if (strpos($example, "<?php") === false) {
         //     $example = "<?php\n{$example}";
@@ -299,15 +327,15 @@ HTML;
         // }
         // $example = highlight_string($example, true);
         // $example = str_replace(["&lt;&gt;</span>", "&lt;/&gt;"], ["</span><kbd>", "</kbd>"], $example);
-        echo <<<HTML
-            <dt class="form-group row">
-                <span class="col">{$label}</span>
-            </dt>
-            <dd class="form-group row">
-                <pre class="col"><code>{$example}</code></pre>
-            </dd>\n
-HTML;
-    }
+        //         echo <<<HTML
+        //             <dt class="form-group row">
+        //                 <span class="col">{$label}</span>
+        //             </dt>
+        //             <dd class="form-group row">
+        //                 <pre class="col"><code>{$example}</code></pre>
+        //             </dd>\n
+        // HTML;
+    // }
     echo <<<HTML
             </dl>
         </div>

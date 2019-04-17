@@ -8,7 +8,13 @@ class phpcsConfig {
             check.addEventListener("change", page.toggleSniff);
         });
         document.querySelectorAll(".example_toggle").forEach((check: HTMLInputElement) => {
-            check.addEventListener("click", page.toggleExample);
+            // check.addEventListener("click", page.toggleExample);
+            $(check).popover({
+                trigger: "click hover focus",
+                html: true,
+                sanitize: false,
+                content: check.parentNode.querySelector(".examples").outerHTML,
+            });
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
         document.getElementById("enabled_only").addEventListener("change", page.toggleEnabled)
