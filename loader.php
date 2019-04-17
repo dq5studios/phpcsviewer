@@ -267,10 +267,24 @@ HTML;
 HTML;
         foreach ($sniff["sniffs"] as $sub) {
             echo <<<HTML
-            <div class="custom-control custom-switch">
+            <div class="form-group">
+                <div class="form-check form-check-inline triple_row">
+                <label class="form-check-label" for="{$sniff["name"]}.{$sub}.off">
+                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
+                Off</label>
+                <label class="form-check-label" for="{$sniff["name"]}.{$sub}.warning">
+                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.warning" value="warning">
+                Warning</label>
+                <label class="form-check-label selected" for="{$sniff["name"]}.{$sub}.error">
+                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.error" value="error" checked>
+                Error</label>
+                </div>
+                <label class="col-check-label" for="{$sniff["name"]}.{$sub}.error">{$sub}</label>
+            </div>
+            <!-- <div class="custom-control custom-switch">
                 <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}.{$sub}">
                 <label class="custom-control-label" for="{$sniff["name"]}.{$sub}">{$sub}</label>
-            </div>\n
+            </div>-->\n
 HTML;
         }
         echo <<<HTML

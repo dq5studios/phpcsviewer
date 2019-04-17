@@ -18,6 +18,13 @@ class phpcsConfig {
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
         document.getElementById("enabled_only").addEventListener("change", page.toggleEnabled)
+
+        //form-check form-check-inline
+        $("body").on("change", "input[type=radio]", function (el) {
+                    $(this).parents(".triple_row").find("label").removeClass("selected");
+                    $(this).parents("label").addClass("selected");
+                }
+        );
     }
 
     public toggleSniff(event: Event): void {
