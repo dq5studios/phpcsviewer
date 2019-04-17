@@ -186,7 +186,7 @@ echo <<<HTML
     <body>
         <div class="container">
             <h1>PHP Code Sniffer Configuration</h1>
-            <form>
+            <form autocomplete="off">
                 <div class="form-group row sticky-top bg-white">
                     <label for="search_filter" class="col-1 col-form-label">Filter</label>
                     <div class="col-3">
@@ -268,16 +268,19 @@ HTML;
         foreach ($sniff["sniffs"] as $sub) {
             echo <<<HTML
             <div class="form-group">
-                <div class="form-check form-check-inline triple_row">
-                <label class="form-check-label" for="{$sniff["name"]}.{$sub}.off">
-                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
-                Off</label>
-                <label class="form-check-label" for="{$sniff["name"]}.{$sub}.warning">
-                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.warning" value="warning">
-                Warning</label>
-                <label class="form-check-label selected" for="{$sniff["name"]}.{$sub}.error">
-                    <input class="form-check-input" type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.error" value="error" checked>
-                Error</label>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-secondary">
+                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
+                        Off
+                    </label>
+                    <label class="btn btn-outline-warning">
+                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.warning" value="warning">
+                        Warning
+                    </label>
+                    <label class="btn btn-outline-danger active">
+                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.error" value="error" checked>
+                        Error
+                    </label>
                 </div>
                 <label class="col-check-label" for="{$sniff["name"]}.{$sub}.error">{$sub}</label>
             </div>
@@ -316,7 +319,7 @@ HTML;
             }
             echo <<<HTML
                     <dt class="form-group row">
-                        <span class="col">{$opt["desc"]}</span>
+                        <label for="{$sniff["name"]}[{$opt["name"]}]" class="col">{$opt["desc"]}</label>
                     </dt>
                     <dd class="form-group row">
                         {$input}
@@ -328,30 +331,6 @@ HTML;
             </dl>
         </div>
         <div class="col">
-            <dl class="examples" hidden>\n
-HTML;
-    // foreach ($sniff["code"] as $label => $example) {
-    //     $example = str_replace(["&lt;em&gt;", "&lt;/em&gt;"], ["<kbd>", "</kbd>"], htmlentities($example));
-        // $example = str_replace(["<em>", "</em>"], ["<>", "</>"], $example);
-        // if (strpos($example, "<?php") === false) {
-        //     $example = "<?php\n{$example}";
-        // }
-        // if (strpos($example, "? >") === false) {
-        //     $example = "{$example}\n? >";
-        // }
-        // $example = highlight_string($example, true);
-        // $example = str_replace(["&lt;&gt;</span>", "&lt;/&gt;"], ["</span><kbd>", "</kbd>"], $example);
-        //         echo <<<HTML
-        //             <dt class="form-group row">
-        //                 <span class="col">{$label}</span>
-        //             </dt>
-        //             <dd class="form-group row">
-        //                 <pre class="col"><code>{$example}</code></pre>
-        //             </dd>\n
-        // HTML;
-    // }
-    echo <<<HTML
-            </dl>
         </div>
     </div>\n
 HTML;

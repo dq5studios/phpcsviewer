@@ -8,9 +8,8 @@ class phpcsConfig {
             check.addEventListener("change", page.toggleSniff);
         });
         document.querySelectorAll(".example_toggle").forEach((check: HTMLInputElement) => {
-            // check.addEventListener("click", page.toggleExample);
             $(check).popover({
-                trigger: "click hover focus",
+                trigger: "hover focus",
                 html: true,
                 sanitize: false,
                 content: check.parentNode.querySelector(".examples").outerHTML,
@@ -18,13 +17,6 @@ class phpcsConfig {
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
         document.getElementById("enabled_only").addEventListener("change", page.toggleEnabled)
-
-        //form-check form-check-inline
-        $("body").on("change", "input[type=radio]", function (el) {
-                    $(this).parents(".triple_row").find("label").removeClass("selected");
-                    $(this).parents("label").addClass("selected");
-                }
-        );
     }
 
     public toggleSniff(event: Event): void {
@@ -40,20 +32,6 @@ class phpcsConfig {
             sniff_list.querySelectorAll(".rules [type=checkbox]").forEach((check: HTMLInputElement) => {
                 check.checked = false;
             });
-        }
-    }
-
-    public toggleExample(event: Event): void {
-        let active = <HTMLInputElement>event.target;
-        let examples = active.parentNode.parentNode.parentNode.parentNode.querySelector(".examples");
-        if (active.classList.contains("text-muted")) {
-            active.classList.add("text-primary");
-            active.classList.remove("text-muted");
-            examples.removeAttribute("hidden");
-        } else {
-            active.classList.add("text-muted");
-            active.classList.remove("text-primary");
-            examples.setAttribute("hidden", "hidden");
         }
     }
 
