@@ -19,7 +19,7 @@ class phpcsConfig {
 
     public toggleSniff(event: Event): void {
         let active = <HTMLInputElement>event.target;
-        let sniff_list = active.parentNode.parentNode.parentNode.querySelector("dl");
+        let sniff_list = active.parentNode.parentNode.parentNode.querySelector(".subs");
         if (active.checked) {
             sniff_list.removeAttribute("hidden");
             sniff_list.querySelectorAll(".rules [type=checkbox]").forEach((check: HTMLInputElement) => {
@@ -82,6 +82,8 @@ class phpcsConfig {
 
     public exportXml() {
         let xml_doc = document.implementation.createDocument(null, "ruleset", null);
+        let nl = xml_doc.createTextNode("\n");
+        let tab = xml_doc.createTextNode("\t");
 
         document.querySelectorAll("h4 [type=checkbox]:checked").forEach((check: HTMLInputElement) => {
             let rule = xml_doc.createElement("rule");
@@ -110,9 +112,11 @@ class phpcsConfig {
         });
 
         let serializer = new XMLSerializer();
-        let xml_string = "<?xml version=\"1.0\"?>\n" + serializer.serializeToString(xml_doc);
+        let xml_string = serializer.serializeToString(xml_doc);
+        xml_string = xml_string.replace(/></g, ">\n<");
+        xml_string = xml_string.replace(/\n\n/g, "\n");
 
-        console.log(xml_string);
+        console.log("<?xml version=\"1.0\"?>\n" + xml_string);
     }
 }
 

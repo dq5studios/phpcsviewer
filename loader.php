@@ -24,15 +24,18 @@ require_once "../PHP_CodeSniffer/src/Util/Tokens.php";
 
 $class_list = get_declared_classes();
 $sniff_list = glob("../PHP_CodeSniffer/src/Standards/*/Sniffs/*/*.php");
-$doc_list = glob("../PHP_CodeSniffer/src/Standards/*/Docs/*/*.xml");
 
 $sniffs = [];
 foreach ($sniff_list as $filename) {
     include_once $filename;
-    $class_check = get_declared_classes();
-    $sniff_class = array_diff($class_check, $class_list);
-    $sniff_class = array_pop($sniff_class);
+}
+$class_check = get_declared_classes();
+$sniff_classes = array_diff($class_check, $class_list);
 
+foreach ($sniff_classes as $i => $sniff_class) {
+    if (strpos($sniff_class, "Standards") === false) {
+        continue;
+    }
     $reflect = new ReflectionClass($sniff_class);
     $def_vals = $reflect->getDefaultProperties();
     $param_list = $reflect->getProperties(ReflectionProperty::IS_PUBLIC);
@@ -66,7 +69,7 @@ foreach ($sniff_list as $filename) {
         ];
     }
 
-    $doc = file_get_contents($filename);
+    $doc = file_get_contents($reflect->getFileName());
     preg_match("/\*\*\s+\*\s+([^@]*)(\*\s+@|\*\/)/sm", $doc, $matched);
     $desc = "Undocumented";
     if (!empty($matched) && count($matched) > 1) {
@@ -75,7 +78,7 @@ foreach ($sniff_list as $filename) {
     }
 
     // Look for sub sniffs
-    preg_match_all("/add(Fixable)?(Error|Warning|Message)(OnLine)?\(([^,]*),([^,]*), *([^,)]*)/", $doc, $sub_sniff);
+    preg_match_all("/->add(Fixable)?(Error|Warning|Message)(OnLine)?\(([^,]*),([^,]*), *([^,)]*)/", $doc, $sub_sniff);
     $search_vars = [];
     $sub_sniff_list = [];
     if (!empty($sub_sniff[6])) {
@@ -106,8 +109,8 @@ foreach ($sniff_list as $filename) {
 
     // Parse xml documentation
     $example = [];
-    $xml_name = str_replace(["/Sniffs/", "Sniff.php"], ["/Docs/", "Standard.xml"], $filename);
-    if (in_array($xml_name, $doc_list) && file_exists($xml_name)) {
+    $xml_name = str_replace(["/Sniffs/", "Sniff.php"], ["/Docs/", "Standard.xml"], $reflect->getFileName());
+    if (file_exists($xml_name)) {
         $example = [];
         $xml = simplexml_load_file($xml_name, "SimpleXMLElement", LIBXML_NOCDATA);
         if ($xml->code_comparison) {
@@ -126,11 +129,16 @@ foreach ($sniff_list as $filename) {
         "desc" => $desc,
         "code" => $example,
         "opts" => $props,
-        "sniffs" => $sub_sniff_list
+        "sniffs" => $sub_sniff_list,
+        "getname" => $reflect->getName(),
+        "filename" => $reflect->getFileName(),
+        "i" => $i
     ];
+    // if ($ref == "Generic.PHP.DiscourageGoto") {
+    // }
 }
 
-// var_dump($sniffs[1]);
+// var_dump($sniffs[56]);
 // exit;
 
 
@@ -257,7 +265,7 @@ HTML;
             </h4>
             <p>{$sniff["desc"]}</p>
             {$code}
-            <dl hidden>\n
+            <dl class="subs" hidden>\n
 HTML;
     if (!empty($sniff["sniffs"])) {
         echo <<<HTML
@@ -268,7 +276,7 @@ HTML;
         foreach ($sniff["sniffs"] as $sub) {
             echo <<<HTML
             <div class="form-group">
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
                     <label class="btn btn-outline-secondary">
                         <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
                         Off
@@ -304,15 +312,15 @@ HTML;
             $input = <<<HTML
                 <label class="col-3 col-form-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
                 <div class="col-6">
-                    <input type="{$type}" class="form-control property" id="{$sniff["name"]}[{$opt["name"]}]">
+                    <input type="{$type}" class="form-control property" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}">
                 </div>
 HTML;
             if (in_array($opt["type"], ["bool", "boolean"])) {
                 $input = <<<HTML
                 <div class="col-6">
                     <div class="custom-control custom-switch">
-                        <input class="custom-control-input property" id="{$sniff["name"]}[{$opt["name"]}]" type="checkbox" value="1">
-                        <label class="custom-control-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
+                        <input class="custom-control-input property" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" type="checkbox" value="1">
+                        <label class="custom-control-label" for="{$sniff["name"]}.{$opt["name"]}">{$opt["name"]}</label>
                     </div>
                 </div>
 HTML;
