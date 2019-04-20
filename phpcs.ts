@@ -1,6 +1,6 @@
 class phpcsConfig {
     public pageReady(): void {
-        document.querySelectorAll("h4 [type=checkbox]").forEach((check: HTMLInputElement) => {
+        document.querySelectorAll("h4 [type=radio]").forEach((check: HTMLInputElement) => {
             check.addEventListener("change", page.toggleSniff);
         });
         document.querySelectorAll(".example_toggle").forEach((check: HTMLInputElement) => {
@@ -8,7 +8,7 @@ class phpcsConfig {
                 trigger: "hover focus",
                 html: true,
                 sanitize: false,
-                content: check.parentNode.querySelector(".examples").outerHTML,
+                content: check.parentElement.querySelector(".examples").outerHTML,
             });
         });
         document.getElementById("search_filter").addEventListener("input", page.filterSniffs);
@@ -19,8 +19,10 @@ class phpcsConfig {
 
     public toggleSniff(event: Event): void {
         let active = <HTMLInputElement>event.target;
-        let sniff_list = active.parentNode.parentNode.parentNode.querySelector(".subs");
-        if (active.checked) {
+        active.parentElement.parentElement.querySelector(".active").classList.remove("active");
+        active.parentElement.classList.add("active");
+        let sniff_list = active.parentElement.parentElement.parentElement.parentElement.querySelector(".subs");
+        if (active.value !== "off") {
             sniff_list.removeAttribute("hidden");
             sniff_list.querySelectorAll(".rules [type=checkbox]").forEach((check: HTMLInputElement) => {
                 check.checked = true;
@@ -56,7 +58,7 @@ class phpcsConfig {
     public toggleEnabled(event: Event): void {
         let active = <HTMLInputElement>document.getElementById("enabled_only");
         if (active.checked) {
-            let show_matches = document.querySelectorAll("h4 [type=checkbox]:checked");
+            let show_matches = document.querySelectorAll("h4 [type=radio]:not([value=off]):checked");
             if (show_matches.length === 0) {
                 return;
             }
@@ -65,7 +67,7 @@ class phpcsConfig {
                 element.setAttribute("hidden", "hidden");
             });
             show_matches.forEach((element: HTMLElement) => {
-                let sniff = <HTMLElement>element.parentNode.parentNode.parentNode.parentNode;
+                let sniff = <HTMLElement>element.parentElement.parentElement.parentElement.parentElement.parentElement;
                 sniff.removeAttribute("hidden");
             });
         } else {
@@ -85,11 +87,16 @@ class phpcsConfig {
         let nl = xml_doc.createTextNode("\n");
         let tab = xml_doc.createTextNode("\t");
 
-        document.querySelectorAll("h4 [type=checkbox]:checked").forEach((check: HTMLInputElement) => {
+        document.querySelectorAll("h4 [type=radio]:not([value=off]):checked").forEach((check: HTMLInputElement) => {
             let rule = xml_doc.createElement("rule");
             let ruleset = xml_doc.getElementsByTagName("ruleset");
             rule.setAttribute("ref", check.getAttribute("name"));
-            let sniff = check.parentNode.parentNode.parentNode;
+            if (check.value == "warning") {
+                let type = xml_doc.createElement("type");
+                type.textContent = "warning";
+                rule.appendChild(type);
+            }
+            let sniff = <Element>check.parentElement.parentElement.parentElement.parentElement;
             sniff.querySelectorAll(".rules [type=radio]:checked").forEach((sub_rule: HTMLInputElement) => {
                 switch (sub_rule.value) {
                     case "off":
@@ -107,7 +114,27 @@ class phpcsConfig {
                         break;
                 }
             });
-            sniff.querySelectorAll(".property");
+            let props = sniff.querySelectorAll(".property input");
+            if (props.length > 0) {
+                let properties = xml_doc.createElement("properties");
+                props.forEach((prop: HTMLInputElement) => {
+                    if (prop.getAttribute("data-original") == prop.value) {
+                        return;
+                    }
+                    let property = xml_doc.createElement("property");
+                    property.setAttribute("key", prop.getAttribute("name").replace(check.getAttribute("name") + ".", ""));
+                    let value = prop.value;
+                    if (prop.type == "checkbox") {
+                        value = prop.checked.toString();
+                        if (value == prop.getAttribute("data-original")) {
+                            return;
+                        }
+                    }
+                    property.setAttribute("value", value);
+                    properties.appendChild(property);
+                });
+                rule.appendChild(properties);
+            }
             ruleset[0].appendChild(rule);
         });
 
@@ -115,8 +142,12 @@ class phpcsConfig {
         let xml_string = serializer.serializeToString(xml_doc);
         xml_string = xml_string.replace(/></g, ">\n<");
         xml_string = xml_string.replace(/\n\n/g, "\n");
+        xml_string = xml_string.replace(/<(\/)?rule([^s])/g, "\t<$1rule$2");
+        xml_string = xml_string.replace(/<(\/)?properties/g, "\t\t<$1properties");
+        xml_string = xml_string.replace(/<property/g, "\t\t\t<property");
+        xml_string = "<?xml version=\"1.0\"?>\n" + xml_string;
 
-        console.log("<?xml version=\"1.0\"?>\n" + xml_string);
+        console.log(xml_string);
     }
 }
 

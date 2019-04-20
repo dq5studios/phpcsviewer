@@ -233,10 +233,22 @@ foreach ($sniffs as $sniff) {
     echo <<<HTML
     <div class="form-group row" data-sniff="{$sniff["name"]}">
         <div class="col-8">
-            <h4>
-                <div class="custom-control custom-switch">
-                    <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}" name="{$sniff["name"]}">
-                    <label class="custom-control-label" for="{$sniff["name"]}">{$sniff["name"]}</label>\n
+            <h4 class="text-nowrap">
+                <div class="btn-group btn-group-sm btn-group-toggle">
+                    <label class="btn btn-outline-secondary active">
+                        <input type="radio" name="{$sniff["name"]}" id="{$sniff["name"]}.off" value="off" checked>
+                        Off
+                    </label>
+                    <label class="btn btn-outline-warning">
+                        <input type="radio" name="{$sniff["name"]}" id="{$sniff["name"]}.warning" value="warning">
+                        Warning
+                    </label>
+                    <label class="btn btn-outline-danger">
+                        <input type="radio" name="{$sniff["name"]}" id="{$sniff["name"]}.error" value="error">
+                        Error
+                    </label>
+                </div>
+                <label class="col-check-label" for="{$sniff["name"]}">{$sniff["name"]}</label>\n
 HTML;
     if (!empty($sniff["code"])) {
         echo <<<HTML
@@ -261,7 +273,6 @@ HTML;
 HTML;
     }
     echo <<<HTML
-                </div>
             </h4>
             <p>{$sniff["desc"]}</p>
             {$code}
@@ -269,7 +280,7 @@ HTML;
 HTML;
     if (!empty($sniff["sniffs"])) {
         echo <<<HTML
-                <dd class="form-group row rules">
+                <dd class="form-group row rules" hidden>
                     <div class="col-2">Rules</div>
                     <div class="col-10">\n
 HTML;
@@ -306,20 +317,27 @@ HTML;
     if (!empty($sniff["opts"])) {
         foreach ($sniff["opts"] as $opt) {
             $type = "text";
-            if (in_array($opt["type"], ["int", "integer"])) {
+            $value = "";
+            if (in_array($opt["type"], ["int", "integer"]) && is_int($opt["default"])) {
                 $type = "number";
+                $value = $opt["default"];
             }
             $input = <<<HTML
                 <label class="col-3 col-form-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
                 <div class="col-6">
-                    <input type="{$type}" class="form-control property" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}">
+                    <input type="{$type}" class="form-control" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" value="{$value}" data-original="{$value}">
                 </div>
 HTML;
             if (in_array($opt["type"], ["bool", "boolean"])) {
+                $checked = "";
+                $value = $opt["default"] ? "true" : "false";
+                if ($opt["default"]) {
+                    $checked = "checked";
+                }
                 $input = <<<HTML
                 <div class="col-6">
                     <div class="custom-control custom-switch">
-                        <input class="custom-control-input property" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" type="checkbox" value="1">
+                        <input class="custom-control-input" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" type="checkbox" value="1" {$checked} data-original="{$value}">
                         <label class="custom-control-label" for="{$sniff["name"]}.{$opt["name"]}">{$opt["name"]}</label>
                     </div>
                 </div>
@@ -329,7 +347,7 @@ HTML;
                     <dt class="form-group row">
                         <label for="{$sniff["name"]}[{$opt["name"]}]" class="col">{$opt["desc"]}</label>
                     </dt>
-                    <dd class="form-group row">
+                    <dd class="form-group row property">
                         {$input}
                     </dd>\n
 HTML;
