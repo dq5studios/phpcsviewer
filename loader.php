@@ -216,9 +216,9 @@ echo <<<HTML
                         <button type="button" class="btn btn-primary" id="import">Import
                         <i class="fas fa-file-upload"></i>
                         </button>
-                        <button type="button" class="btn btn-primary" id="export">Export
-                        <i class="fas fa-file-download"></i>
-                        </button>
+                        <a href="download" class="btn btn-primary" id="export">Export
+                            <i class="fas fa-file-download"></i>
+                        </a>
                     </div>
                 </div>\n
 HTML;
@@ -285,6 +285,7 @@ HTML;
                     <div class="col-10">\n
 HTML;
         foreach ($sniff["sniffs"] as $sub) {
+            continue;
             echo <<<HTML
             <div class="form-group">
                 <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
