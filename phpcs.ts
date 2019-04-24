@@ -130,7 +130,7 @@ class phpcsConfig {
                         return;
                     }
                     let property = xml_doc.createElement("property");
-                    property.setAttribute("key", prop.getAttribute("name").replace(check.getAttribute("name") + ".", ""));
+                    property.setAttribute("name", prop.getAttribute("name").replace(check.getAttribute("name") + ".", ""));
                     let value = prop.value;
                     if (prop.type == "checkbox") {
                         value = prop.checked.toString();
@@ -155,6 +155,7 @@ class phpcsConfig {
         xml_string = xml_string.replace(/></g, ">\n<");
         xml_string = xml_string.replace(/\n\n/g, "\n");
         xml_string = xml_string.replace(/<(\/)?rule([^s])/g, "\t<$1rule$2");
+        xml_string = xml_string.replace(/<(\/)?type/g, "\t\t<$1type");
         xml_string = xml_string.replace(/<(\/)?properties/g, "\t\t<$1properties");
         xml_string = xml_string.replace(/<property/g, "\t\t\t<property");
         xml_string = "<?xml version=\"1.0\"?>\n" + xml_string;

@@ -37,6 +37,13 @@ foreach ($sniff_classes as $i => $sniff_class) {
         continue;
     }
     $reflect = new ReflectionClass($sniff_class);
+    $parent = "";
+    if ($reflect->getParentClass()) {
+        $parent_class = $reflect->getParentClass()->getName();
+        if ($parent_class !== "Sniff" && strpos($parent_class, "Abstract") === false) {
+            $parent = $parent_class;
+        }
+    }
     $def_vals = $reflect->getDefaultProperties();
     $param_list = $reflect->getProperties(ReflectionProperty::IS_PUBLIC);
     $props = [];
@@ -124,8 +131,14 @@ foreach ($sniff_classes as $i => $sniff_class) {
     $parts = explode("\\", $sniff_class);
     $parts[5] = str_replace("Sniff", "", $parts[5]);
     $ref = "{$parts[2]}.{$parts[4]}.{$parts[5]}";
-    $sniffs[] = [
+    if (!empty($parent)) {
+        $parts = explode("\\", $parent);
+        $parts[5] = str_replace("Sniff", "", $parts[5]);
+        $parent = "{$parts[2]}.{$parts[4]}.{$parts[5]}";
+    }
+    $sniffs[$ref] = [
         "name" => $ref,
+        "parent" => $parent,
         "desc" => $desc,
         "code" => $example,
         "opts" => $props,
@@ -137,6 +150,7 @@ foreach ($sniff_classes as $i => $sniff_class) {
     // if ($ref == "Generic.PHP.DiscourageGoto") {
     // }
 }
+sort($sniffs);
 
 // var_dump($sniffs[56]);
 // exit;
@@ -274,6 +288,13 @@ HTML;
     }
     echo <<<HTML
             </h4>
+HTML;
+    if (!empty($sniff["parent"])) {
+        echo <<<HTML
+        <h6>Extends: <i>{$sniff["parent"]}</i></h6>
+HTML;
+    }
+    echo <<<HTML
             <p>{$sniff["desc"]}</p>
             {$code}
             <dl class="subs" hidden>\n
@@ -286,29 +307,29 @@ HTML;
 HTML;
         foreach ($sniff["sniffs"] as $sub) {
             continue;
-            echo <<<HTML
-            <div class="form-group">
-                <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-secondary">
-                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
-                        Off
-                    </label>
-                    <label class="btn btn-outline-warning">
-                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.warning" value="warning">
-                        Warning
-                    </label>
-                    <label class="btn btn-outline-danger active">
-                        <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.error" value="error" checked>
-                        Error
-                    </label>
-                </div>
-                <label class="col-check-label" for="{$sniff["name"]}.{$sub}.error">{$sub}</label>
-            </div>
-            <!-- <div class="custom-control custom-switch">
-                <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}.{$sub}">
-                <label class="custom-control-label" for="{$sniff["name"]}.{$sub}">{$sub}</label>
-            </div>-->\n
-HTML;
+            //             echo <<<HTML
+            //             <div class="form-group">
+            //                 <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
+            //                     <label class="btn btn-outline-secondary">
+            //                         <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.off" value="off">
+            //                         Off
+            //                     </label>
+            //                     <label class="btn btn-outline-warning">
+            //                         <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.warning" value="warning">
+            //                         Warning
+            //                     </label>
+            //                     <label class="btn btn-outline-danger active">
+            //                         <input type="radio" name="{$sniff["name"]}.{$sub}" id="{$sniff["name"]}.{$sub}.error" value="error" checked>
+            //                         Error
+            //                     </label>
+            //                 </div>
+            //                 <label class="col-check-label" for="{$sniff["name"]}.{$sub}.error">{$sub}</label>
+            //             </div>
+            //             <!-- <div class="custom-control custom-switch">
+            //                 <input class="custom-control-input" type="checkbox" id="{$sniff["name"]}.{$sub}">
+            //                 <label class="custom-control-label" for="{$sniff["name"]}.{$sub}">{$sub}</label>
+            //             </div>-->\n
+            // HTML;
         }
         echo <<<HTML
                     </div>
@@ -326,7 +347,8 @@ HTML;
             $input = <<<HTML
                 <label class="col-3 col-form-label" for="{$sniff["name"]}[{$opt["name"]}]">{$opt["name"]}</label>
                 <div class="col-6">
-                    <input type="{$type}" class="form-control" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" value="{$value}" data-original="{$value}">
+                    <input type="{$type}" class="form-control" id="{$sniff["name"]}.{$opt["name"]}"
+                        name="{$sniff["name"]}.{$opt["name"]}" value="{$value}" data-original="{$value}">
                 </div>
 HTML;
             if (in_array($opt["type"], ["bool", "boolean"])) {
@@ -338,7 +360,9 @@ HTML;
                 $input = <<<HTML
                 <div class="col-6">
                     <div class="custom-control custom-switch">
-                        <input class="custom-control-input" id="{$sniff["name"]}.{$opt["name"]}" name="{$sniff["name"]}.{$opt["name"]}" type="checkbox" value="1" {$checked} data-original="{$value}">
+                        <input class="custom-control-input" id="{$sniff["name"]}.{$opt["name"]}"
+                            name="{$sniff["name"]}.{$opt["name"]}" type="checkbox" value="1" {$checked}
+                            data-original="{$value}">
                         <label class="custom-control-label" for="{$sniff["name"]}.{$opt["name"]}">{$opt["name"]}</label>
                     </div>
                 </div>
