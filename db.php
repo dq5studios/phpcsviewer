@@ -15,7 +15,7 @@
 declare(strict_types=1);
 
 /**
- * DB wrapper for PDO
+ * DB wrapper
  *
  * @category PHPCSView
  * @package  PHPCSView
@@ -54,14 +54,14 @@ class DB
     public static function factory(): self
     {
         if (!is_null(self::$_dbh)) {
-            return self;
+            return new self();
         }
         $user = $_SERVER["db_user"] ?? "username";
         $pass = $_SERVER["db_pass"] ?? "password";
         self::$_dbh = new PDO("pgsql:dbname=phpcsview;host=localhost", $user, $pass);
         self::$_dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        return self;
+        return new self();
     }
 
     /**
@@ -74,7 +74,7 @@ class DB
      */
     public function query(string $sql, array $parm = []): self
     {
-        $this->_sth = $this->_dbh->prepare($sql);
+        $this->_sth = self::$_dbh->prepare($sql);
 
         // Bind
         foreach ($parm as $key => $value) {
@@ -94,20 +94,20 @@ class DB
         }
         $this->_sth->execute();
 
-        return self;
+        return $this;
     }
 
     /**
      * Return query results
      *
-     * @return object|null A single row
+     * @return Sniff|null A single row
      */
-    public function fetch(): ?object
+    public function fetch(): ?Sniff
     {
         if (empty($this->_sth)) {
             return null;
         }
-        $this->_sth->setFetchMode(PDO::FETCH_OBJ);
+        $this->_sth->setFetchMode(PDO::FETCH_CLASS, "Sniff");
         $row = $this->_sth->fetch();
         if ($row === false) {
             $this->_sth = null;
