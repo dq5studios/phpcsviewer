@@ -47,6 +47,13 @@ class Sniff
     public $descrip;
 
     /**
+     * Parent sniff
+     *
+     * @var string
+     */
+    public $parent;
+
+    /**
      * Version added
      *
      * @var string
@@ -68,6 +75,13 @@ class Sniff
     public $opts;
 
     /**
+     * Example documentation
+     *
+     * @var array
+     */
+    public $docs;
+
+    /**
      * Get the sniff details, all or one
      *
      * @param int $seq Specific sniff
@@ -79,7 +93,8 @@ class Sniff
         $parm = [];
 
         $sql = "SELECT 'Sniff', seq, *
-                  FROM sniff";
+                  FROM sniff
+              ORDER BY id";
         if (!empty($seq)) {
             $sql .= "\n\tWHERE seq = :seq";
             $parm[":seq"] = $seq;
