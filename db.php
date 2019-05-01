@@ -33,13 +33,6 @@ class DB
     private static $_dbh;
 
     /**
-     * Statement handler
-     *
-     * @var PDOStatement Statement handler
-     */
-    private $_sth;
-
-    /**
      * Do nothing, use ::factory() instead
      */
     public function __construct()
@@ -70,11 +63,11 @@ class DB
      * @param string $sql  Query
      * @param array  $parm Bound parameters
      *
-     * @return self Database wrapper
+     * @return array Results
      */
-    public function query(string $sql, array $parm = []): self
+    public function query(string $sql, array $parm = []): ?array
     {
-        $this->_sth = self::$_dbh->prepare($sql);
+        $sth = self::$_dbh->prepare($sql);
 
         // Bind
         foreach ($parm as $key => $value) {
@@ -90,30 +83,16 @@ class DB
                 $type = PDO::PARAM_STR;
                 break;
             }
-            $this->_sth->bindValue($key, $value, $type);
+            $sth->bindValue($key, $value, $type);
         }
-        $this->_sth->execute();
+        $sth->execute();
 
-        return $this;
-    }
-
-    /**
-     * Return query results
-     *
-     * @return Sniff|null A single row
-     */
-    public function fetch(): ?Sniff
-    {
-        if (empty($this->_sth)) {
-            return null;
-        }
-        $this->_sth->setFetchMode(PDO::FETCH_CLASS, "Sniff");
-        $row = $this->_sth->fetch();
-        if ($row === false) {
-            $this->_sth = null;
+        $fetch_style = PDO::FETCH_CLASS | PDO::FETCH_CLASSTYPE | PDO::FETCH_UNIQUE;
+        $results = $sth->fetchAll($fetch_style);
+        if ($results === false) {
             return null;
         }
 
-        return $row;
+        return $results;
     }
 }
