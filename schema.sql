@@ -13,6 +13,7 @@ CREATE TABLE sniff
     seq integer DEFAULT nextval('sniff_seq'::regclass) NOT NULL,
     id character varying(100) NOT NULL,
     descrip text NOT NULL,
+    parent character varying(100),
     added text NOT NULL,
     removed text
 );
