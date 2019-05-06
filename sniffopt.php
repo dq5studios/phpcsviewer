@@ -72,7 +72,7 @@ class SniffOpt
      *
      * @return SniffOpt[] Sniff details
      */
-    public static function get(): array
+    public static function list(): array
     {
         $sql = "SELECT 'SniffOpt', seq, *
                   FROM sniff_opt";
