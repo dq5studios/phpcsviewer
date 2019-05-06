@@ -82,27 +82,21 @@ class Sniff
     public $docs;
 
     /**
-     * Get the sniff details, all or one
-     *
-     * @param int $seq Specific sniff
+     * Get all the sniff details
      *
      * @return Sniff[] Sniff details
      */
-    public static function get($seq = null): array
+    public static function list(): array
     {
         $parm = [];
 
         $sql = "SELECT 'Sniff', seq, *
                   FROM sniff
               ORDER BY id";
-        if (!empty($seq)) {
-            $sql .= "\n\tWHERE seq = :seq";
-            $parm[":seq"] = $seq;
-        }
 
         $sniff_list = DB::factory()->query($sql, $parm);
 
-        $opts = SniffOpt::get();
+        $opts = SniffOpt::list();
         foreach ($opts as $seq => $opt) {
             if (!array_key_exists($opt->sniff_seq, $sniff_list)) {
                 continue;
