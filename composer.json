@@ -1,0 +1,26 @@
+{
+    "name": "dq5studios/phpcsviewer",
+    "description": "PHPCS thingy",
+    "type": "project",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Ben Dusinberre",
+            "email": "ben@dq5studios.com"
+        }
+    ],
+    "require": {
+        "nikic/php-parser": "^4.3",
+        "squizlabs/php_codesniffer": "^3.5"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.11.19",
+        "phpunit/phpunit": "^8.4",
+        "vimeo/psalm": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "dq5studios\\phpcsviewer\\": "src/"
+        }
+    }
+}
