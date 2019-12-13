@@ -3,9 +3,9 @@
 
 declare(strict_types=1);
 
-namespace dq5studios;
+namespace Dq5studios;
 
-use dq5studios\phpcsviewer\Runner;
+use Dq5studios\PhpcsViewer\Runner;
 
 require_once __DIR__ . "/vendor/autoload.php";
 

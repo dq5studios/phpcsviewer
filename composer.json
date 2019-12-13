@@ -2,7 +2,7 @@
     "name": "dq5studios/phpcsviewer",
     "description": "PHPCS thingy",
     "type": "project",
-    "license": "BSD",
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Ben Dusinberre",
@@ -20,7 +20,20 @@
     },
     "autoload": {
         "psr-4": {
-            "dq5studios\\phpcsviewer\\": "src/"
+            "Dq5studios\\PhpcsViewer\\": "src/"
         }
+    },
+    "scripts": {
+        "standards": "phpcs",
+        "analyze": [
+            "psalm --shepherd",
+            "phpstan analyse src/"
+        ],
+        "unit-test": "phpunit --coverage-clover=coverage.xml",
+        "all-tests": [
+            "phpcs",
+            "psalm",
+            "phpunit"
+        ]
     }
 }

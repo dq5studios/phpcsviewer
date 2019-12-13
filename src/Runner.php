@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace dq5studios\phpcsviewer;
+namespace Dq5studios\PhpcsViewer;
 
+use PHP_CodeSniffer\Config;
 use PhpParser\ParserFactory;
 
 /**
@@ -22,6 +23,8 @@ class Runner
             echo "No sniffs found", PHP_EOL;
             return;
         }
+
+        $version = Config::VERSION;
 
         $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
         foreach ($sniff_list as $filename) {
@@ -156,19 +159,32 @@ class Runner
                 ];
             }
 
+            // Parse xml documentation
+            $example = [];
+            $xml_name = str_replace(["/Sniffs/", "Sniff.php"], ["/Docs/", "Standard.xml"], realpath($filename));
+            if (file_exists($xml_name)) {
+                $example = [];
+                $xml = simplexml_load_file($xml_name, "SimpleXMLElement", LIBXML_NOCDATA);
+                if ($xml->code_comparison && $xml->code_comparison->code) {
+                    foreach ($xml->code_comparison->code as $value) {
+                        $key = (string) $value->attributes()[0];
+                        $example[$key] = trim((string) $value);
+                    }
+                }
+            }
+
             $sniffs[$sniff_name] = [
                 "name" => $sniff_name,
                 "parent" => $parent,
                 "desc" => $file_docblock,
-            //     "code" => $example,
+                "code" => $example,
                 "opts" => $options,
-            //     "sniffs" => $sub_sniff_list,
                 "fqdn" => $namespace_stmt->toCodeString(),
                 "classname" => $classname,
                 "filename" => realpath($filename),
-            //     "i" => $i
             ];
         }
+
         echo print_r($sniffs, true);
     }
 }
