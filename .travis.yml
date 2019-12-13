@@ -1,0 +1,11 @@
+language: php
+php:
+  - 7.4snapshot
+
+install:
+  - composer install
+
+script:
+  - composer standards
+  - composer analyze
+
