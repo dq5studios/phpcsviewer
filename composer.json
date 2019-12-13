@@ -33,6 +33,7 @@
         "all-tests": [
             "phpcs",
             "psalm",
+            "phpstan analyse src/",
             "phpunit"
         ]
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dq5studios\PhpcsViewer;
+namespace DQ5studios\PhpcsViewer;
 
 use PHP_CodeSniffer\Config;
 use PhpParser\ParserFactory;
@@ -24,9 +24,9 @@ class Runner
             return;
         }
 
-        $version = Config::VERSION;
+        $version = (string) Config::VERSION;
 
-        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
         foreach ($sniff_list as $filename) {
             $code = file_get_contents($filename);
             if (empty($code)) {
@@ -51,7 +51,11 @@ class Runner
             // Cleanup file docblock
             $file_docblock = $file_ast->getDocComment();
             if ($file_docblock instanceof \PhpParser\Comment\Doc) {
-                $file_docblock = (string) (preg_replace("/^(\s+\*\s@.*$|\s+\*\s|\/\*\*|\s+\*\/)|\s+$/m", "", $file_docblock->getText()) ?? "Undocumented");
+                $file_docblock = (string) (preg_replace(
+                    "/^(\s+\*\s@.*$|\s+\*\s|\/\*\*|\s+\*\/)|\s+$/m",
+                    "",
+                    $file_docblock->getText()
+                ) ?? "Undocumented");
                 $file_docblock = trim(str_replace("\n\n", "\n", $file_docblock));
             }
 
